@@ -83,13 +83,15 @@ spec:
               cpu: '4'
               memory: 8Gi
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            fsGroup: 1000
             allowPrivilegeEscalation: false
             capabilities:
               drop:
                 - ALL
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
