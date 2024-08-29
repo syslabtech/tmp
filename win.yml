@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-app-tikvclient-go
+  namespace: ns-app-tax-alpha
+spec:
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+      name: tikvclient-go
+    - port: 8000
+      targetPort: 8000
+      name: win-ui
+      protocol: TCP
+  selector:
+    app: pod-app-tikv-client-go
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-app-tikvclient-go
+  namespace: ns-app-tax-alpha
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: pod-app-tikv-client-go
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: pod-app-tikv-client-go
+        ca-access-tikv: 'true'
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - pod-app-tikv-client-go
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+      containers:
+        - env:
+            - name: TIKV_URL
+              value: 'http://svc-app-tikv-datalayer-api-old.ns-app-tax-alpha:3000/'
+          image: aipowerbot/tikvclient
+          imagePullPolicy: Always
+          name: app-tikvclient-go
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          resources:
+            limits:
+              cpu: '1'
+              memory: 1Gi
+        - env:
+            - name: VERSION
+              value: "win10"
+            - name: MANUAL
+              value: "Y"
+          image: dockurr/windows
+          imagePullPolicy: IfNotPresent
+          name: app-win
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+            - containerPort: 3389
+              protocol: TCP
+          resources:
+            limits:
+              cpu: '4'
+              memory: 8Gi
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
