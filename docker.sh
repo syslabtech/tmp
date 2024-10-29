@@ -1,19 +1,21 @@
 #!/bin/bash
 
 # Array of Docker images to pull from Docker Hub
-DOCKER_HUB_IMAGES=(
-    "aipowerbot/de-de"
-    "aipowerbot/cs-cz"
-    "aipowerbot/bg-bg"
-    "aipowerbot/da-dk"
-    "aipowerbot/el-gr"
-    "aipowerbot/en-us"
-    "aipowerbot/es-es"
-    "aipowerbot/fi-fi"
-    "aipowerbot/fr-fr"
-    "aipowerbot/hu-hu"
-    "aipowerbot/it-it"
-    "aipowerbot/nl-nl"
+DOCKER_HUB_IMAGES="
+    aipowerbot/de-de
+    aipowerbot/cs-cz
+    aipowerbot/bg-bg
+    aipowerbot/da-dk
+    aipowerbot/el-gr
+    aipowerbot/en-us
+    aipowerbot/es-es
+    aipowerbot/fi-fi
+    aipowerbot/fr-fr
+    aipowerbot/hu-hu
+    aipowerbot/it-it
+    aipowerbot/nl-nl
+"
+    
     # "aipowerbot/pl-pl"
     # "aipowerbot/pt-pt"
     # "aipowerbot/ro-ro"
