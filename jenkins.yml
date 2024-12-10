@@ -58,7 +58,7 @@ spec:
         - key: kubernetes.io/hostname
           operator: In
           values:
-          - worker-node01
+          - ubuntu
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
