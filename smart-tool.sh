@@ -123,7 +123,8 @@ if [ -f /etc/os-release ]; then
         # Extract the device path (e.g., /dev/sda or /dev/nvme0)
         DEVICE=$(echo "$LINE" | awk '{print $1}')
         DEVICE_TYPE=$(echo "$LINE" | awk '{print $3}')
-        MOUNT_POINT=$($SUDO df -h | grep "$DEVICE" | head -n 1 | awk '{print $6}')
+        # MOUNT_POINT=(df -h | grep "$DEVICE" | head -n 1 | awk '{print $6}')
+        MOUNT_POINT=$($SUDO df -h | grep /dev/sda | head -n 1 | awk '{print $6}')
         # Run smartctl -a and append the output to the combined output file
         run_smartctl_a "$DEVICE" "$MOUNT_POINT"
     done
