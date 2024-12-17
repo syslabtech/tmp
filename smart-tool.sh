@@ -20,7 +20,7 @@ run_smartctl_test() {
     # Check if the output mentions 'please try adding \'-d megaraid,N\''
     if echo "$TEST_OUTPUT" | grep -q "please try adding '-d megaraid"; then
         # Extract the suggested megaraid,N value if present
-        MEGARAID_ID=$(echo "$TEST_OUTPUT" | grep -o "'-d megaraid,[0-9]*'" | grep -o "[0-9]*")
+        MEGARAID_ID=0
         
         if [ -n "$MEGARAID_ID" ]; then
             echo "Retrying with '-d megaraid,$MEGARAID_ID'"
@@ -46,7 +46,7 @@ run_smartctl_a() {
     # Check for the 'please try adding \'-d megaraid,N\'' message
     if echo "$OUTPUT" | grep -q "please try adding '-d megaraid"; then
         # Extract the suggested megaraid ID
-        MEGARAID_ID=$(echo "$OUTPUT" | grep -o "'-d megaraid,[0-9]*'" | grep -o "[0-9]*")
+        MEGARAID_ID=0
         
         if [ -n "$MEGARAID_ID" ]; then
             echo "Retrying with '-d megaraid,$MEGARAID_ID'"
