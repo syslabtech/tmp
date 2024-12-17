@@ -24,7 +24,8 @@ run_smartctl_a() {
 
     # Remove newlines, carriage returns, and spaces to create a single string
     # MODIFIED_OUTPUT=$(echo "$OUTPUT" | tr -d '\n\r '
-    MODIFIED_OUTPUT=$(echo "$OUTPUT" | tr '\n' '|||' | tr '\r' ':::')
+    # MODIFIED_OUTPUT=$(echo "$OUTPUT" | tr '\n' '|||' | tr '\r' ':::')
+    MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
 
     # Append the output to the single output file
     # DISK_HEALTH_DATA:host:fkw01,disk_path:/dev/sdd,mount_path:/host/var/mnt/datavol5|||
