@@ -131,29 +131,3 @@ if [ -f /etc/os-release ]; then
 else
     echo "The /etc/os-release file does not exist. Unable to detect OS."
 fi
-
-
-
-
-# Function to run smartctl -a and save the output to a single file
-run_smartctl_a() {
-    DEVICE=$1
-    MOUNT_PATH=$2
-    OUTPUT=$($SUDO smartctl -a "$DEVICE")
-
-    # Remove newlines, carriage returns, and spaces to create a single string
-    # MODIFIED_OUTPUT=$(echo "$OUTPUT" | tr -d '\n\r '
-    # MODIFIED_OUTPUT=$(echo "$OUTPUT" | tr '\n' '|||' | tr '\r' ':::')
-    MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
-
-    # Append the output to the single output file
-    # DISK_HEALTH_DATA:host:fkw01,disk_path:/dev/sdd,mount_path:/host/var/mnt/datavol5|||
-    echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$OUTPUT" >> smartctl_drivescan_normal_output.log
-    echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
-}
-
-
-It is proper but on OUTPUT=$($SUDO smartctl -a "$DEVICE") any issue give like below
-please try adding '-d megaraid,N'
-
-then you shoud be add like OUTPUT=$($SUDO smartctl -a -d megaraid,0 "$DEVICE") 
