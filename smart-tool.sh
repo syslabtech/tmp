@@ -13,25 +13,58 @@ check_sudo() {
 run_smartctl_test() {
     DEVICE=$1
     echo "Running smartctl test on $DEVICE"
-    $SUDO smartctl -t short "$DEVICE"
+    
+    # Run the command and capture the output and error
+    TEST_OUTPUT=$($SUDO smartctl -t short "$DEVICE" 2>&1)
+    
+    # Check if the output mentions 'please try adding \'-d megaraid,N\''
+    if echo "$TEST_OUTPUT" | grep -q "please try adding '-d megaraid"; then
+        # Extract the suggested megaraid,N value if present
+        MEGARAID_ID=$(echo "$TEST_OUTPUT" | grep -o "'-d megaraid,[0-9]*'" | grep -o "[0-9]*")
+        
+        if [ -n "$MEGARAID_ID" ]; then
+            echo "Retrying with '-d megaraid,$MEGARAID_ID'"
+            $SUDO smartctl -t short -d megaraid,$MEGARAID_ID "$DEVICE"
+        else
+            echo "Failed to determine megaraid ID. Please check manually."
+        fi
+    else
+        echo "Smartctl test initiated successfully on $DEVICE."
+    fi
 }
 
 # Function to run smartctl -a and save the output to a single file
 run_smartctl_a() {
     DEVICE=$1
     MOUNT_PATH=$2
-    OUTPUT=$($SUDO smartctl -a "$DEVICE")
 
-    # Remove newlines, carriage returns, and spaces to create a single string
-    # MODIFIED_OUTPUT=$(echo "$OUTPUT" | tr -d '\n\r '
-    # MODIFIED_OUTPUT=$(echo "$OUTPUT" | tr '\n' '|||' | tr '\r' ':::')
+    echo "Running smartctl -a on $DEVICE"
+
+    # Attempt the first smartctl -a command
+    OUTPUT=$($SUDO smartctl -a "$DEVICE" 2>&1)
+
+    # Check for the 'please try adding \'-d megaraid,N\'' message
+    if echo "$OUTPUT" | grep -q "please try adding '-d megaraid"; then
+        # Extract the suggested megaraid ID
+        MEGARAID_ID=$(echo "$OUTPUT" | grep -o "'-d megaraid,[0-9]*'" | grep -o "[0-9]*")
+        
+        if [ -n "$MEGARAID_ID" ]; then
+            echo "Retrying with '-d megaraid,$MEGARAID_ID'"
+            # Retry with the suggested megaraid option
+            OUTPUT=$($SUDO smartctl -a -d megaraid,$MEGARAID_ID "$DEVICE" 2>&1)
+        else
+            echo "Unable to determine megaraid ID. Please check manually."
+        fi
+    fi
+
+    # Modify the output to replace newlines and carriage returns
     MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
 
-    # Append the output to the single output file
-    # DISK_HEALTH_DATA:host:fkw01,disk_path:/dev/sdd,mount_path:/host/var/mnt/datavol5|||
+    # Append both original and modified output to their respective files
     echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$OUTPUT" >> smartctl_drivescan_normal_output.log
     echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
 }
+
 
 # Clear the file at the beginning of the script
 echo "Clearing output file..."
@@ -83,7 +116,7 @@ if [ -f /etc/os-release ]; then
     done
 
     echo "Sleeping for 5 minutes..."
-    sleep 300  # Adjust the sleep time as needed for the tests to complete
+    sleep 10 # Adjust the sleep time as needed for the tests to complete
 
     # Iterate through each line of the smartctl scan output
     echo "$SCAN_OUTPUT" | while read -r LINE; do
@@ -98,3 +131,29 @@ if [ -f /etc/os-release ]; then
 else
     echo "The /etc/os-release file does not exist. Unable to detect OS."
 fi
+
+
+
+
+# Function to run smartctl -a and save the output to a single file
+run_smartctl_a() {
+    DEVICE=$1
+    MOUNT_PATH=$2
+    OUTPUT=$($SUDO smartctl -a "$DEVICE")
+
+    # Remove newlines, carriage returns, and spaces to create a single string
+    # MODIFIED_OUTPUT=$(echo "$OUTPUT" | tr -d '\n\r '
+    # MODIFIED_OUTPUT=$(echo "$OUTPUT" | tr '\n' '|||' | tr '\r' ':::')
+    MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
+
+    # Append the output to the single output file
+    # DISK_HEALTH_DATA:host:fkw01,disk_path:/dev/sdd,mount_path:/host/var/mnt/datavol5|||
+    echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$OUTPUT" >> smartctl_drivescan_normal_output.log
+    echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
+}
+
+
+It is proper but on OUTPUT=$($SUDO smartctl -a "$DEVICE") any issue give like below
+please try adding '-d megaraid,N'
+
+then you shoud be add like OUTPUT=$($SUDO smartctl -a -d megaraid,0 "$DEVICE") 
