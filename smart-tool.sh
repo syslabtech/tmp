@@ -62,7 +62,7 @@ run_smartctl_a() {
 
     # Append both original and modified output to their respective files
     echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$OUTPUT" >> smartctl_drivescan_normal_output.log
-    echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
+    # echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
 }
 
 
