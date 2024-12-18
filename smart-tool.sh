@@ -59,15 +59,29 @@ run_smartctl_a() {
 
     # Check for the 'please try adding \'-d megaraid,N\'' message
     if echo "$OUTPUT" | grep -q "please try adding '-d megaraid"; then
-        # Extract the suggested megaraid ID
+        # Extract the suggested megaraid ID (defaulting to 0)
         MEGARAID_ID=0
-        
+
         if [ -n "$MEGARAID_ID" ]; then
             echo "Retrying with '-d megaraid,$MEGARAID_ID'"
             # Retry with the suggested megaraid option
             OUTPUT=$($SUDO smartctl -a -d megaraid,$MEGARAID_ID "$DEVICE" 2>&1)
         else
             echo "Unable to determine megaraid ID. Please check manually."
+        fi
+    fi
+
+    # Check for the 'requires option \'-d cciss,N\'' message
+    if echo "$OUTPUT" | grep -q "requires option '-d cciss"; then
+        # Extract the suggested cciss ID (defaulting to 0)
+        CCISS_ID=0
+
+        if [ -n "$CCISS_ID" ]; then
+            echo "Retrying with '-d cciss,$CCISS_ID'"
+            # Retry with the suggested cciss option
+            OUTPUT=$($SUDO smartctl -a -d cciss,$CCISS_ID "$DEVICE" 2>&1)
+        else
+            echo "Unable to determine cciss ID. Please check manually."
         fi
     fi
 
@@ -78,6 +92,7 @@ run_smartctl_a() {
     # echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$OUTPUT" >> smartctl_drivescan_normal_output.log
     echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
 }
+
 
 
 # Clear the file at the beginning of the script
