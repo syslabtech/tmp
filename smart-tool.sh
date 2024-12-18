@@ -163,6 +163,7 @@ if [ -f /etc/os-release ]; then
         # Run smartctl -a and append the output to the combined output file
         run_smartctl_a "$DEVICE" "$MOUNT_POINT"
     done
+    echo "TIME:$(date)>> script_run_time
 
 else
     echo "The /etc/os-release file does not exist. Unable to detect OS."
