@@ -20,18 +20,32 @@ run_smartctl_test() {
     # Check if the output mentions 'please try adding \'-d megaraid,N\''
     if echo "$TEST_OUTPUT" | grep -q "please try adding '-d megaraid"; then
         # Extract the suggested megaraid,N value if present
-        MEGARAID_ID=0
-        
+        MEGARAID_ID=0  # Default to ID 0, as an example. Adjust if necessary.
+
         if [ -n "$MEGARAID_ID" ]; then
             echo "Retrying with '-d megaraid,$MEGARAID_ID'"
             $SUDO smartctl -t short -d megaraid,$MEGARAID_ID "$DEVICE"
         else
             echo "Failed to determine megaraid ID. Please check manually."
         fi
+
+    # Check if the output mentions 'requires option \'-d cciss,N\''
+    elif echo "$TEST_OUTPUT" | grep -q "requires option '-d cciss"; then
+        # Extract the suggested cciss,N value if present
+        CCISS_ID=0  # Default to ID 0, as an example. Adjust if necessary.
+
+        if [ -n "$CCISS_ID" ]; then
+            echo "Retrying with '-d cciss,$CCISS_ID'"
+            $SUDO smartctl -t short -d cciss,$CCISS_ID "$DEVICE"
+        else
+            echo "Failed to determine cciss ID. Please check manually."
+        fi
+
     else
         echo "Smartctl test initiated successfully on $DEVICE."
     fi
 }
+
 
 # Function to run smartctl -a and save the output to a single file
 run_smartctl_a() {
