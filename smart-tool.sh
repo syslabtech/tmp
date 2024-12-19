@@ -113,20 +113,20 @@ if [ -f /etc/os-release ]; then
     # Check if sudo is available
     check_sudo
 
-    # Check if the system is Ubuntu or Alpine
-    if [ "$OS_NAME" = "ubuntu" ]; then
-        echo "Ubuntu detected. Version: $OS_INFO"
-        $SUDO apt update
-        $SUDO apt install -y smartmontools
+    # # Check if the system is Ubuntu or Alpine
+    # if [ "$OS_NAME" = "ubuntu" ]; then
+    #     echo "Ubuntu detected. Version: $OS_INFO"
+    #     $SUDO apt update
+    #     $SUDO apt install -y smartmontools
 
-    elif [ "$OS_NAME" = "alpine" ]; then
-        echo "Alpine Linux detected. Version: $OS_INFO"
-        $SUDO apk update
-        $SUDO apk add smartmontools
+    # elif [ "$OS_NAME" = "alpine" ]; then
+    #     echo "Alpine Linux detected. Version: $OS_INFO"
+    #     $SUDO apk update
+    #     $SUDO apk add smartmontools
 
-    else
-        echo "Unsupported operating system: $OS_NAME"
-    fi
+    # else
+    #     echo "Unsupported operating system: $OS_NAME"
+    # fi
 
     # Run the smartctl --scan command and store the output in a temporary variable
     SCAN_OUTPUT=$(smartctl --scan)
