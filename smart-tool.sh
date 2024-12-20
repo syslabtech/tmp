@@ -13,38 +13,47 @@ check_sudo() {
 run_smartctl_test() {
     DEVICE=$1
     echo "Running smartctl test on $DEVICE"
-    
+
     # Run the command and capture the output and error
     TEST_OUTPUT=$($SUDO smartctl -t short "$DEVICE" 2>&1)
-    
-    # Check if the output mentions 'please try adding \'-d megaraid,N\''
+
+    # Check if the output mentions 'please try adding \"-d megaraid,N\"'
     if echo "$TEST_OUTPUT" | grep -q "please try adding '-d megaraid"; then
-        # Extract the suggested megaraid,N value if present
-        MEGARAID_ID=0  # Default to ID 0, as an example. Adjust if necessary.
+        echo "Retrying with '-d megaraid,N'"
+        MEGARAID_ID=0
+        while :; do
+            OUTPUT=$($SUDO smartctl -t short -d megaraid,$MEGARAID_ID "$DEVICE" 2>&1)
+            if echo "$OUTPUT" | grep -q "INQUIRY failed"; then
+                echo "Smartctl open device: $DEVICE [megaraid_disk_$(printf '%02d' $MEGARAID_ID)] failed: INQUIRY failed"
+                break
+            elif echo "$OUTPUT" | grep -q "Test will run"; then
+                echo "Smartctl test initiated successfully with '-d megaraid,$MEGARAID_ID'"
+                return
+            fi
+            MEGARAID_ID=$((MEGARAID_ID + 1))
+        done
 
-        if [ -n "$MEGARAID_ID" ]; then
-            echo "Retrying with '-d megaraid,$MEGARAID_ID'"
-            $SUDO smartctl -t short -d megaraid,$MEGARAID_ID "$DEVICE"
-        else
-            echo "Failed to determine megaraid ID. Please check manually."
-        fi
-
-    # Check if the output mentions 'requires option \'-d cciss,N\''
+    # Check if the output mentions 'requires option \"-d cciss,N\"'
     elif echo "$TEST_OUTPUT" | grep -q "requires option '-d cciss"; then
-        # Extract the suggested cciss,N value if present
-        CCISS_ID=0  # Default to ID 0, as an example. Adjust if necessary.
-
-        if [ -n "$CCISS_ID" ]; then
-            echo "Retrying with '-d cciss,$CCISS_ID'"
-            $SUDO smartctl -t short -d cciss,$CCISS_ID "$DEVICE"
-        else
-            echo "Failed to determine cciss ID. Please check manually."
-        fi
+        echo "Retrying with '-d cciss,N'"
+        CCISS_ID=0
+        while :; do
+            OUTPUT=$($SUDO smartctl -t short -d cciss,$CCISS_ID "$DEVICE" 2>&1)
+            if echo "$OUTPUT" | grep -q "No such device or address"; then
+                echo "Smartctl open device: $DEVICE [cciss_disk_$(printf '%02d' $CCISS_ID)] [SCSI/SAT] failed: INQUIRY [SAT]: No such device or address"
+                break
+            elif echo "$OUTPUT" | grep -q "Test will run"; then
+                echo "Smartctl test initiated successfully with '-d cciss,$CCISS_ID'"
+                return
+            fi
+            CCISS_ID=$((CCISS_ID + 1))
+        done
 
     else
         echo "Smartctl test initiated successfully on $DEVICE."
     fi
 }
+
 
 
 # Function to run smartctl -a and save the output to a single file
@@ -57,43 +66,48 @@ run_smartctl_a() {
     # Attempt the first smartctl -a command
     OUTPUT=$($SUDO smartctl -a "$DEVICE" 2>&1)
 
-    # Check for the 'please try adding \'-d megaraid,N\'' message
+    # Check for the 'please try adding \"-d megaraid,N\"' message
     if echo "$OUTPUT" | grep -q "please try adding '-d megaraid"; then
-        # Extract the suggested megaraid ID (defaulting to 0)
+        echo "Retrying with '-d megaraid,N'"
         MEGARAID_ID=0
-
-        if [ -n "$MEGARAID_ID" ]; then
-            echo "Retrying with '-d megaraid,$MEGARAID_ID'"
-            # Retry with the suggested megaraid option
+        while :; do
             OUTPUT=$($SUDO smartctl -a -d megaraid,$MEGARAID_ID "$DEVICE" 2>&1)
-        else
-            echo "Unable to determine megaraid ID. Please check manually."
-        fi
+            if echo "$OUTPUT" | grep -q "INQUIRY failed"; then
+                echo "Smartctl open device: $DEVICE [megaraid_disk_$(printf '%02d' $MEGARAID_ID)] failed: INQUIRY failed"
+                break
+            elif echo "$OUTPUT" | grep -q "SMART overall-health self-assessment test result"; then
+                echo "Smartctl -a initiated successfully with '-d megaraid,$MEGARAID_ID'"
+                break
+            fi
+            MEGARAID_ID=$((MEGARAID_ID + 1))
+        done
     fi
 
-    # Check for the 'requires option \'-d cciss,N\'' message
+    # Check for the 'requires option \"-d cciss,N\"' message
     if echo "$OUTPUT" | grep -q "requires option '-d cciss"; then
-        # Extract the suggested cciss ID (defaulting to 0)
+        echo "Retrying with '-d cciss,N'"
         CCISS_ID=0
-
-        if [ -n "$CCISS_ID" ]; then
-            echo "Retrying with '-d cciss,$CCISS_ID'"
-            # Retry with the suggested cciss option
+        while :; do
             OUTPUT=$($SUDO smartctl -a -d cciss,$CCISS_ID "$DEVICE" 2>&1)
-        else
-            echo "Unable to determine cciss ID. Please check manually."
-        fi
+            if echo "$OUTPUT" | grep -q "No such device or address"; then
+                echo "Smartctl open device: $DEVICE [cciss_disk_$(printf '%02d' $CCISS_ID)] [SCSI/SAT] failed: INQUIRY [SAT]: No such device or address"
+                break
+            elif echo "$OUTPUT" | grep -q "SMART overall-health self-assessment test result"; then
+                echo "Smartctl -a initiated successfully with '-d cciss,$CCISS_ID'"
+                break
+            fi
+            CCISS_ID=$((CCISS_ID + 1))
+        done
     fi
 
     # Modify the output to replace newlines and carriage returns
     MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
 
     # Append both original and modified output to their respective files
-    # echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$OUTPUT" >> smartctl_drivescan_normal_output.log
     echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
     echo "TIME: $(date)" >> script_run_time
-
 }
+
 
 
 
