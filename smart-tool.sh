@@ -25,7 +25,7 @@ create_diskmonitoring_folder() {
 
 
 
-local MAX_SHORT_TEST_TIME=0
+MAX_SHORT_TEST_TIME=0
 
 # Extract the time (in minutes) from the output
 extract_minutes_from_output() {
