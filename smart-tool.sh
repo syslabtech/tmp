@@ -52,6 +52,7 @@ run_smartctl_test() {
             echo $TEST_TIME
             if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
                 MAX_SHORT_TEST_TIME=$TEST_TIME
+                echo $MAX_SHORT_TEST_TIME
             fi
             if echo "$OUTPUT" | grep -q "INQUIRY failed"; then
                 echo "Smartctl open device: $DEVICE [megaraid_disk_$(printf '%02d' $MEGARAID_ID)] failed: INQUIRY failed"
