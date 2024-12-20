@@ -71,15 +71,14 @@ run_smartctl_a() {
             if echo "$OUTPUT" | grep -q "INQUIRY failed"; then
                 echo "Smartctl open device: $DEVICE [megaraid_disk_$(printf '%02d' $MEGARAID_ID)] failed: INQUIRY failed"
                 break
-            elif echo "$OUTPUT" | grep -q "SMART overall-health self-assessment test result"; then
-                echo "Smartctl -a initiated successfully with '-d megaraid,$MEGARAID_ID'"
-                # Modify the output to replace newlines and carriage returns
-                MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
-
-                # Append both original and modified output to their respective files
-                echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
-                continue
             fi
+            echo "Smartctl -a initiated successfully with '-d megaraid,$MEGARAID_ID'"
+            # Modify the output to replace newlines and carriage returns
+            MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
+
+            # Append both original and modified output to their respective files
+            echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
+            
             MEGARAID_ID=$((MEGARAID_ID + 1))
         done
     fi
@@ -93,15 +92,14 @@ run_smartctl_a() {
             if echo "$OUTPUT" | grep -q "No such device or address"; then
                 echo "Smartctl open device: $DEVICE [cciss_disk_$(printf '%02d' $CCISS_ID)] [SCSI/SAT] failed: INQUIRY [SAT]: No such device or address"
                 break
-            elif echo "$OUTPUT" | grep -q "SMART overall-health self-assessment test result"; then
-                echo "Smartctl -a initiated successfully with '-d cciss,$CCISS_ID'"
-                # Modify the output to replace newlines and carriage returns
-                MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
-
-                # Append both original and modified output to their respective files
-                echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
-                continue
             fi
+            echo "Smartctl -a initiated successfully with '-d cciss,$CCISS_ID'"
+            # Modify the output to replace newlines and carriage returns
+            MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
+
+            # Append both original and modified output to their respective files
+            echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
+            
             CCISS_ID=$((CCISS_ID + 1))
         done
     fi
