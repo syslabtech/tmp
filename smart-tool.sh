@@ -27,6 +27,12 @@ create_diskmonitoring_folder() {
 # Function to run smartctl short test
 MAX_SHORT_TEST_TIME=0
 
+# Extract the time (in minutes) from the output
+extract_minutes_from_output() {
+    echo "$1" | grep -oE 'Please wait ([0-9]+) minutes' | awk '{print $3}'
+}
+
+
 run_smartctl_test() {
     DEVICE=$1
     echo "Running smartctl test on $DEVICE"
@@ -34,11 +40,7 @@ run_smartctl_test() {
     # Run the command and capture the output and error
     TEST_OUTPUT=$($SUDO smartctl -t short "$DEVICE" 2>&1)
 
-    # Extract the time (in minutes) from the output
-    extract_minutes_from_output() {
-        echo "$1" | grep -oE 'Please wait ([0-9]+) minutes' | awk '{print $3}'
-    }
-
+   
 
     # Check if the output mentions 'please try adding \"-d megaraid,N\"'
     if echo "$TEST_OUTPUT" | grep -q "please try adding '-d megaraid"; then
@@ -47,7 +49,7 @@ run_smartctl_test() {
         while :; do
             OUTPUT=$($SUDO smartctl -t short -d megaraid,$MEGARAID_ID "$DEVICE" 2>&1)
             TEST_TIME=$(extract_minutes_from_output "$OUTPUT")
-            if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_TEST_TIME" ]; then
+            if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
                 MAX_SHORT_TEST_TIME=$TEST_TIME
             fi
             if echo "$OUTPUT" | grep -q "INQUIRY failed"; then
