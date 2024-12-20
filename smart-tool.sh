@@ -213,7 +213,7 @@ if [ -f /etc/os-release ]; then
     done
 
     echo "Sleeping for $MAX_SHORT_TEST_TIME minutes..."
-    sleep $MAX_SHORT_TEST_TIME # Adjust the sleep time as needed for the tests to complete
+    sleep "$((MAX_SHORT_TEST_TIME * 60))" # Adjust the sleep time as needed for the tests to complete
 
     # Iterate through each line of the smartctl scan output
     echo "$SCAN_OUTPUT" | while read -r LINE; do
