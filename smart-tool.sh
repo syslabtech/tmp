@@ -109,7 +109,7 @@ run_smartctl_a() {
             echo "Smartctl -a initiated successfully with '-d megaraid,$MEGARAID_ID'"
             # Modify the output to replace newlines and carriage returns
             MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
-            echo $MODIFIED_OUTPUT
+            # echo $MODIFIED_OUTPUT
             # Append both original and modified output to their respective files
             echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> /var/diskmonitoring/smartctl_drivescan_output.log
             
