@@ -73,7 +73,12 @@ run_smartctl_a() {
                 break
             elif echo "$OUTPUT" | grep -q "SMART overall-health self-assessment test result"; then
                 echo "Smartctl -a initiated successfully with '-d megaraid,$MEGARAID_ID'"
-                break
+                # Modify the output to replace newlines and carriage returns
+                MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
+
+                # Append both original and modified output to their respective files
+                echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
+                continue
             fi
             MEGARAID_ID=$((MEGARAID_ID + 1))
         done
@@ -90,17 +95,17 @@ run_smartctl_a() {
                 break
             elif echo "$OUTPUT" | grep -q "SMART overall-health self-assessment test result"; then
                 echo "Smartctl -a initiated successfully with '-d cciss,$CCISS_ID'"
-                break
+                # Modify the output to replace newlines and carriage returns
+                MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
+
+                # Append both original and modified output to their respective files
+                echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
+                continue
             fi
             CCISS_ID=$((CCISS_ID + 1))
         done
     fi
 
-    # Modify the output to replace newlines and carriage returns
-    MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
-
-    # Append both original and modified output to their respective files
-    echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
     echo "TIME: $(date)" >> script_run_time
 }
 
