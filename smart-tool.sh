@@ -9,6 +9,22 @@ check_sudo() {
     fi
 }
 
+create_diskmonitoring_folder() {
+    # Check if the folder /var/diskmonitoring exists
+    if [ ! -d "/var/diskmonitoring" ]; then
+        # If it doesn't exist, create it with root permissions
+        echo "Creating /var/diskmonitoring folder with root permissions"
+        $SUDO mkdir -p /var/diskmonitoring
+        # Set the folder's owner to root and the group to 'users' (optional)
+        $SUDO chown root:users /var/diskmonitoring
+        # Allow the owner (root) and the group (users) to read/write, others can only read
+        $SUDO chmod 775 /var/diskmonitoring
+    else
+        echo "/var/diskmonitoring already exists. Skipping creation."
+    fi
+}
+
+
 # Function to run smartctl short test
 run_smartctl_test() {
     DEVICE=$1
@@ -77,7 +93,7 @@ run_smartctl_a() {
             MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
 
             # Append both original and modified output to their respective files
-            echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
+            echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> /var/diskmonitoring/smartctl_drivescan_output.log
             
             MEGARAID_ID=$((MEGARAID_ID + 1))
         done
@@ -98,7 +114,7 @@ run_smartctl_a() {
             MODIFIED_OUTPUT=$(echo "$OUTPUT" | sed ':a;N;$!ba;s/\n/|||/g' | sed 's/\r/:::/g' | sed 's/|||[|]\{1,\}/|||/g' | sed 's/:::|||/|||/g')
 
             # Append both original and modified output to their respective files
-            echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> smartctl_drivescan_output.log
+            echo "DISK_HEALTH_DATA:host:$(hostname),disk_path:$DEVICE,mount_path:$MOUNT_PATH|||$MODIFIED_OUTPUT" >> /var/diskmonitoring/smartctl_drivescan_output.log
             
             CCISS_ID=$((CCISS_ID + 1))
         done
@@ -125,6 +141,7 @@ if [ -f /etc/os-release ]; then
 
     # Check if sudo is available
     check_sudo
+    create_diskmonitoring_folder
 
     # # Check if the system is Ubuntu or Alpine
     # if [ "$OS_NAME" = "ubuntu" ]; then
