@@ -16,8 +16,6 @@ create_diskmonitoring_folder() {
         # If it doesn't exist, create it with root permissions
         echo "Creating /var/diskmonitoring folder with root permissions"
         $SUDO mkdir -p /var/diskmonitoring
-        # Set the folder's owner to root and the group to 'users' (optional)
-        $SUDO chown root:users /var/diskmonitoring
         # Allow the owner (root) and the group (users) to read/write, others can only read
         $SUDO chmod 777 /var/diskmonitoring
     else
