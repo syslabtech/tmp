@@ -49,6 +49,7 @@ run_smartctl_test() {
         while :; do
             OUTPUT=$($SUDO smartctl -t short -d megaraid,$MEGARAID_ID "$DEVICE" 2>&1)
             TEST_TIME=$(extract_minutes_from_output "$OUTPUT")
+            echo $TEST_TIME
             if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
                 MAX_SHORT_TEST_TIME=$TEST_TIME
             fi
