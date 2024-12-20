@@ -47,6 +47,8 @@ update_test_time() {
     if [ "$extracted_time" -gt "$TEST_TIME" ]; then
         MAX_TEST_TIME=$extracted_time
     fi
+    echo "extracted time $extracted_time"
+    echo "assign time $MAX_TEST_TIME"
 }
 
 
