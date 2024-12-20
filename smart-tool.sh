@@ -19,7 +19,7 @@ create_diskmonitoring_folder() {
         # Set the folder's owner to root and the group to 'users' (optional)
         $SUDO chown root:users /var/diskmonitoring
         # Allow the owner (root) and the group (users) to read/write, others can only read
-        $SUDO chmod 775 /var/diskmonitoring
+        $SUDO chmod 777 /var/diskmonitoring
     else
         echo "/var/diskmonitoring already exists. Skipping creation."
     fi
@@ -38,7 +38,7 @@ run_smartctl_test() {
 
     # Extract the time (in minutes) from the output
     extract_minutes_from_output() {
-        echo "$1" | grep -oP 'Please wait \K\d+(?= minutes)'
+        echo "$1" | grep -oE 'Please wait ([0-9]+) minutes' | awk '{print $3}'
     }
 
 
