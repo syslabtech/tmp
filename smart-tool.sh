@@ -91,7 +91,7 @@ run_smartctl_test() {
         echo "Smartctl test initiated successfully on $DEVICE."
     fi
 
-    echo "The maximum short test time encountered was $MAX_SHORT_TEST_TIME minutes."
+    echo "The maximum short test time encountered was $MAX_TEST_TIME minutes."
 
 }
 
