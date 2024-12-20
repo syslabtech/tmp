@@ -25,16 +25,27 @@ create_diskmonitoring_folder() {
 
 
 
-MAX_SHORT_TEST_TIME=0
+MAX_TEST_TIME=0
 
-# Extract the time (in minutes) from the output
+# Function to extract minutes
 extract_minutes_from_output() {
     local output="$1"
     local minutes=$(echo "$output" | grep -oE 'Please wait ([0-9]+) minutes' | awk '{print $3}')
     if [ -z "$minutes" ]; then
-        echo 0
+        echo 0  # Return 0 if no match is found
     else
-        echo "$minutes"
+        echo "$minutes"  # Return extracted minutes
+    fi
+}
+
+# Function to process and update TEST_TIME
+update_test_time() {
+    local output="$1"
+    local extracted_time=$(extract_minutes_from_output "$output")
+
+    # Update the global variable if the extracted value is greater
+    if [ "$extracted_time" -gt "$TEST_TIME" ]; then
+        MAX_TEST_TIME=$extracted_time
     fi
 }
 
@@ -45,23 +56,14 @@ run_smartctl_test() {
 
     # Run the command and capture the output and error
     TEST_OUTPUT=$($SUDO smartctl -t short "$DEVICE" 2>&1)
-    TEST_TIME=$(extract_minutes_from_output "$TEST_OUTPUT")
-    if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
-        MAX_SHORT_TEST_TIME=$TEST_TIME
-    fi
-   
-
+    update_test_time "$TEST_OUTPUT"
     # Check if the output mentions 'please try adding \"-d megaraid,N\"'
     if echo "$TEST_OUTPUT" | grep -q "please try adding '-d megaraid"; then
         echo "Retrying with '-d megaraid,N'"
         MEGARAID_ID=0
         while :; do
             OUTPUT=$($SUDO smartctl -t short -d megaraid,$MEGARAID_ID "$DEVICE" 2>&1)
-            TEST_TIME=$(extract_minutes_from_output "$OUTPUT")
-            if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
-                MAX_SHORT_TEST_TIME=$TEST_TIME
-                
-            fi
+            update_test_time "$OUTPUT"
             if echo "$OUTPUT" | grep -q "INQUIRY failed"; then
                 echo "Smartctl open device: $DEVICE [megaraid_disk_$(printf '%02d' $MEGARAID_ID)] failed: INQUIRY failed"
                 break
@@ -76,10 +78,7 @@ run_smartctl_test() {
         CCISS_ID=0
         while :; do
             OUTPUT=$($SUDO smartctl -t short -d cciss,$CCISS_ID "$DEVICE" 2>&1)
-            TEST_TIME=$(extract_minutes_from_output "$OUTPUT")
-            if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
-                MAX_SHORT_TEST_TIME=$TEST_TIME
-            fi
+            update_test_time "$OUTPUT"
             if echo "$OUTPUT" | grep -q "No such device or address"; then
                 echo "Smartctl open device: $DEVICE [cciss_disk_$(printf '%02d' $CCISS_ID)] [SCSI/SAT] failed: INQUIRY [SAT]: No such device or address"
                 break
@@ -96,7 +95,7 @@ run_smartctl_test() {
 
 }
 
-
+echo "new time $MAX_SHORT_TEST_TIME"
 
 # Function to run smartctl -a and save the output to a single file
 run_smartctl_a() {
@@ -212,8 +211,8 @@ if [ -f /etc/os-release ]; then
         fi
     done
 
-    echo "Sleeping for $MAX_SHORT_TEST_TIME minutes..."
-    sleep "$((MAX_SHORT_TEST_TIME * 60))" # Adjust the sleep time as needed for the tests to complete
+    echo "Sleeping for $MAX_TEST_TIME minutes..."
+    sleep $(MAX_TEST_TIME * 60)  # Adjust the sleep time as needed for the tests to complete
 
     # Iterate through each line of the smartctl scan output
     echo "$SCAN_OUTPUT" | while read -r LINE; do
