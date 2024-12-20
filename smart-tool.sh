@@ -9,6 +9,7 @@ check_sudo() {
     fi
 }
 
+
 create_diskmonitoring_folder() {
     # Check if the folder /var/diskmonitoring exists
     if [ ! -d "/var/diskmonitoring" ]; then
@@ -26,6 +27,8 @@ create_diskmonitoring_folder() {
 
 
 # Function to run smartctl short test
+MAX_SHORT_TEST_TIME=0
+
 run_smartctl_test() {
     DEVICE=$1
     echo "Running smartctl test on $DEVICE"
@@ -33,12 +36,22 @@ run_smartctl_test() {
     # Run the command and capture the output and error
     TEST_OUTPUT=$($SUDO smartctl -t short "$DEVICE" 2>&1)
 
+    # Extract the time (in minutes) from the output
+    extract_minutes_from_output() {
+        echo "$1" | grep -oP 'Please wait \K\d+(?= minutes)'
+    }
+
+
     # Check if the output mentions 'please try adding \"-d megaraid,N\"'
     if echo "$TEST_OUTPUT" | grep -q "please try adding '-d megaraid"; then
         echo "Retrying with '-d megaraid,N'"
         MEGARAID_ID=0
         while :; do
             OUTPUT=$($SUDO smartctl -t short -d megaraid,$MEGARAID_ID "$DEVICE" 2>&1)
+            TEST_TIME=$(extract_minutes_from_output "$OUTPUT")
+            if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_TEST_TIME" ]; then
+                MAX_SHORT_TEST_TIME=$TEST_TIME
+            fi
             if echo "$OUTPUT" | grep -q "INQUIRY failed"; then
                 echo "Smartctl open device: $DEVICE [megaraid_disk_$(printf '%02d' $MEGARAID_ID)] failed: INQUIRY failed"
                 break
@@ -53,6 +66,10 @@ run_smartctl_test() {
         CCISS_ID=0
         while :; do
             OUTPUT=$($SUDO smartctl -t short -d cciss,$CCISS_ID "$DEVICE" 2>&1)
+            TEST_TIME=$(extract_minutes_from_output "$OUTPUT")
+            if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_TEST_TIME" ]; then
+                MAX_SHORT_TEST_TIME=$TEST_TIME
+            fi
             if echo "$OUTPUT" | grep -q "No such device or address"; then
                 echo "Smartctl open device: $DEVICE [cciss_disk_$(printf '%02d' $CCISS_ID)] [SCSI/SAT] failed: INQUIRY [SAT]: No such device or address"
                 break
@@ -182,8 +199,8 @@ if [ -f /etc/os-release ]; then
         fi
     done
 
-    echo "Sleeping for 5 minutes..."
-    sleep 300 # Adjust the sleep time as needed for the tests to complete
+    echo "Sleeping for $MAX_SHORT_TEST_TIME minutes..."
+    sleep $MAX_SHORT_TEST_TIME # Adjust the sleep time as needed for the tests to complete
 
     # Iterate through each line of the smartctl scan output
     echo "$SCAN_OUTPUT" | while read -r LINE; do
