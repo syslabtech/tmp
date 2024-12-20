@@ -190,13 +190,13 @@ if [ -f /etc/os-release ]; then
     # fi
 
     # Run the smartctl --scan command and store the output in a temporary variable
-    SCAN_OUTPUT=$(smartctl --scan)
+    SCAN_OUTPUT=$(smartctl --scan -d scsi && smartctl --scan -d nvmec)
 
     # Check if SCAN_OUTPUT is blank
-    if [ -z "$SCAN_OUTPUT" ]; then
-        echo "No devices found in smartctl --scan. Defaulting to /dev/sda."
-        SCAN_OUTPUT="/dev/sda"
-    fi
+    # if [ -z "$SCAN_OUTPUT" ]; then
+    #     echo "No devices found in smartctl --scan. Defaulting to /dev/sda."
+    #     SCAN_OUTPUT="/dev/sda"
+    # fi
     
     # Iterate through each line of the smartctl scan output
     echo "$SCAN_OUTPUT" | while read -r LINE; do
