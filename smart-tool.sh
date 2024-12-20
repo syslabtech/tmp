@@ -26,10 +26,8 @@ run_smartctl_test() {
             if echo "$OUTPUT" | grep -q "INQUIRY failed"; then
                 echo "Smartctl open device: $DEVICE [megaraid_disk_$(printf '%02d' $MEGARAID_ID)] failed: INQUIRY failed"
                 break
-            elif echo "$OUTPUT" | grep -q "Test will complete"; then
-                echo "Smartctl test initiated successfully with '-d megaraid,$MEGARAID_ID'"
-                return
             fi
+            echo "Smartctl test initiated successfully with '-d megaraid,$MEGARAID_ID'"
             MEGARAID_ID=$((MEGARAID_ID + 1))
         done
 
@@ -42,10 +40,8 @@ run_smartctl_test() {
             if echo "$OUTPUT" | grep -q "No such device or address"; then
                 echo "Smartctl open device: $DEVICE [cciss_disk_$(printf '%02d' $CCISS_ID)] [SCSI/SAT] failed: INQUIRY [SAT]: No such device or address"
                 break
-            elif echo "$OUTPUT" | grep -q "Test will complete"; then
-                echo "Smartctl test initiated successfully with '-d cciss,$CCISS_ID'"
-                return
             fi
+            echo "Smartctl test initiated successfully with '-d cciss,$CCISS_ID'"           
             CCISS_ID=$((CCISS_ID + 1))
         done
 
