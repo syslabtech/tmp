@@ -72,8 +72,8 @@ run_smartctl_test() {
         while :; do
             OUTPUT=$($SUDO smartctl -t short -d cciss,$CCISS_ID "$DEVICE" 2>&1)
             TEST_TIME=$(extract_minutes_from_output "$OUTPUT")
-            if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_TEST_TIME" ]; then
-                MAX_SHORT_TEST_TIME=$TEST_TIME
+            if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
+                update_var "$TEST_TIME"
             fi
             if echo "$OUTPUT" | grep -q "No such device or address"; then
                 echo "Smartctl open device: $DEVICE [cciss_disk_$(printf '%02d' $CCISS_ID)] [SCSI/SAT] failed: INQUIRY [SAT]: No such device or address"
@@ -86,6 +86,9 @@ run_smartctl_test() {
     else
         echo "Smartctl test initiated successfully on $DEVICE."
     fi
+
+    echo "The maximum short test time encountered was $MAX_SHORT_TEST_TIME minutes."
+
 }
 
 
