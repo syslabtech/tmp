@@ -27,13 +27,15 @@ create_diskmonitoring_folder() {
 # Function to run smartctl short test
 MAX_SHORT_TEST_TIME=0
 
-update_var() {
-    MAX_SHORT_TEST_TIME=$1
-}
-
 # Extract the time (in minutes) from the output
 extract_minutes_from_output() {
-    echo "$1" | grep -oE 'Please wait ([0-9]+) minutes' | awk '{print $3}'
+    local output="$1"
+    local minutes=$(echo "$output" | grep -oE 'Please wait ([0-9]+) minutes' | awk '{print $3}')
+    if [ -z "$minutes" ]; then
+        echo 0
+    else
+        echo "$minutes"
+    fi
 }
 
 
@@ -43,7 +45,10 @@ run_smartctl_test() {
 
     # Run the command and capture the output and error
     TEST_OUTPUT=$($SUDO smartctl -t short "$DEVICE" 2>&1)
-
+    TEST_TIME=$(extract_minutes_from_output "$TEST_OUTPUT")
+    if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
+        MAX_SHORT_TEST_TIME=$TEST_TIME
+    fi
    
 
     # Check if the output mentions 'please try adding \"-d megaraid,N\"'
@@ -54,7 +59,7 @@ run_smartctl_test() {
             OUTPUT=$($SUDO smartctl -t short -d megaraid,$MEGARAID_ID "$DEVICE" 2>&1)
             TEST_TIME=$(extract_minutes_from_output "$OUTPUT")
             if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
-                update_var "$TEST_TIME"
+                MAX_SHORT_TEST_TIME=$TEST_TIME
                 
             fi
             if echo "$OUTPUT" | grep -q "INQUIRY failed"; then
@@ -73,7 +78,7 @@ run_smartctl_test() {
             OUTPUT=$($SUDO smartctl -t short -d cciss,$CCISS_ID "$DEVICE" 2>&1)
             TEST_TIME=$(extract_minutes_from_output "$OUTPUT")
             if [ -n "$TEST_TIME" ] && [ "$TEST_TIME" -gt "$MAX_SHORT_TEST_TIME" ]; then
-                update_var "$TEST_TIME"
+                MAX_SHORT_TEST_TIME=$TEST_TIME
             fi
             if echo "$OUTPUT" | grep -q "No such device or address"; then
                 echo "Smartctl open device: $DEVICE [cciss_disk_$(printf '%02d' $CCISS_ID)] [SCSI/SAT] failed: INQUIRY [SAT]: No such device or address"
