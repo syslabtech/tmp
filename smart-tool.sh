@@ -24,8 +24,8 @@ create_diskmonitoring_folder() {
 }
 
 
-# Function to run smartctl short test
-MAX_SHORT_TEST_TIME=0
+
+local MAX_SHORT_TEST_TIME=0
 
 # Extract the time (in minutes) from the output
 extract_minutes_from_output() {
