@@ -44,7 +44,7 @@ update_test_time() {
     local extracted_time=$(extract_minutes_from_output "$output")
 
     # Update the global variable if the extracted value is greater
-    if [ "$extracted_time" -gt "$TEST_TIME" ]; then
+    if [ "$extracted_time" -gt "$MAX_TEST_TIME" ]; then
         MAX_TEST_TIME=$extracted_time
     fi
     echo "extracted time $extracted_time"
