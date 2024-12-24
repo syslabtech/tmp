@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# cron uses a minimal environment with a limited PATH, and /usr/sbin is not included in that default PATH.
+# Ensure the PATH includes /usr/sbin
+export PATH=$PATH:/usr/sbin:/usr/local/sbin:/sbin
+
+
 # Function to check if sudo is installed
 check_sudo() {
     if command -v sudo >/dev/null 2>&1; then
