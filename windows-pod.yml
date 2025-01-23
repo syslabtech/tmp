@@ -36,7 +36,9 @@ spec:
     - protocol: TCP
       port: 8000
       targetPort: 8000
+      name: expose
     - protocol: TCP
       port: 3389
       targetPort: 3389
+      name: tcp
   type: ClusterIP
