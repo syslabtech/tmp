@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-win-pod
+  labels:
+    app: app-win
+spec:
+  containers:
+    - name: app-win
+      image: dockurr/windows
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 8000
+          protocol: TCP
+        - containerPort: 3389
+          protocol: TCP
+      env:
+        - name: VERSION
+          value: "win10"
+      resources:
+        limits:
+          cpu: "2"
+          memory: 2Gi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-win-service
+spec:
+  selector:
+    app: app-win
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+    - protocol: TCP
+      port: 3389
+      targetPort: 3389
+  type: ClusterIP
