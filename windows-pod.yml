@@ -20,10 +20,16 @@ spec:
       env:
         - name: VERSION
           value: "win10"
+        - name: KVM
+          value: "N"
       resources:
         limits:
           cpu: "2"
           memory: 2Gi
+  securityContext:
+    sysctls:
+      - name: net.ipv4.ip_forward
+        value: "1"
 ---
 apiVersion: v1
 kind: Service
