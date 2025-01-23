@@ -1,0 +1,37 @@
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: app-win-gateway
+spec:
+  selector:
+    istio: ingressgateway # Use the default ingress gateway provided by Istio
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - "app-win.example.com" # Replace with your domain
+      tls:
+        mode: SIMPLE
+        credentialName: app-win-ssl-cert # Kubernetes secret for SSL certificate
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: app-win-virtualservice
+spec:
+  hosts:
+    - "app-win.example.com" # Replace with your domain
+  gateways:
+    - app-win-gateway
+  http:
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: app-win-service
+            port:
+              number: 8000
