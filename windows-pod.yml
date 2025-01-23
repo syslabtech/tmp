@@ -13,8 +13,10 @@ spec:
       ports:
         - containerPort: 8000
           protocol: TCP
+          name: expose
         - containerPort: 3389
           protocol: TCP
+          name: tcp
       env:
         - name: VERSION
           value: "win10"
