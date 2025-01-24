@@ -8,19 +8,30 @@ spec:
   containers:
     - name: windows
       image: dockurr/windows
+      env:
+        - name: VERSION
+          value: "10"
+        - name: RAM_SIZE
+          value: "8G"
+        - name: CPU_CORES
+          value: "2"
+        - name: DISK_SIZE
+          value: "64G"
       ports:
         - containerPort: 8006
         - containerPort: 3389
-          protocol: TCP
-      securityContext:
-        privileged: true
-      env:
-        - name: VERSION
-          value: "win10"
+        - containerPort: 3389
+          protocol: UDP
       resources:
         limits:
-          cpu: "2"
-          memory: 2Gi
+          cpu: 3000m
+          memory: 10Gi
+        requests:
+          cpu: 10m
+          memory: 2Mi
+      securityContext:
+        privileged: true
+  terminationGracePeriodSeconds: 120
 ---
 apiVersion: v1
 kind: Service
@@ -40,4 +51,9 @@ spec:
       port: 3389
       targetPort: 3389
       nodePort: 31213
+    - name: udp-3389
+      protocol: UDP
+      port: 3389
+      targetPort: 3389
+      nodePort: 31214
   type: NodePort
