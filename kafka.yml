@@ -38,6 +38,8 @@ spec:
         memory: 2Gi
   zookeeper:
     replicas: 1  # Single-node Zookeeper
+    storage:
+      type: ephemeral  # Add required storage configuration
     resources:
       requests:
         cpu: 250m
