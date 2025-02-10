@@ -38,6 +38,8 @@ spec:
       "-Xmx": 1000m
   zookeeper:
     replicas: 1
+    storage:
+      type: ephemeral
     resources:
       requests:
         memory: 1Gi
