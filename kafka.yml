@@ -16,7 +16,7 @@ spec:
         port: 9093
         type: internal
         tls: true
-      - name: scram-sha-512
+      - name: scram
         port: 9094
         type: internal
         tls: true
