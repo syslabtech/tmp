@@ -5,7 +5,7 @@ metadata:
   namespace: kafka
 spec:
   kafka:
-    version: 3.7.0 # specify kafka version
+    version: 3.8.0 # specify kafka version
     replicas: 1
     listeners:
       - name: plain
