@@ -36,6 +36,8 @@ spec:
     jvmOptions:
       "-Xms": 1000m
       "-Xmx": 1000m
+    storage: # Added Kafka storage configuration
+      type: ephemeral
   zookeeper:
     replicas: 1
     storage:
