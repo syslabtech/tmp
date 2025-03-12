@@ -19,6 +19,10 @@ spec:
         - env:
           - name: VERSION
             value: "win10"
+          - name: RAM_SIZE
+            value: "2G"
+          - name: CPU_CORES
+            value: "1"
           name: windows
           image: dockurr/windows
           ports:
