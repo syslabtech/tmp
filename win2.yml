@@ -22,7 +22,10 @@ spec:
           - name: RAM_SIZE
             value: "2G"
           - name: CPU_CORES
-            value: "1"
+            value: "1"          
+          - name: KVM
+            value: "N"
+
           name: windows
           image: dockurr/windows
           ports:
