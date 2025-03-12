@@ -34,6 +34,9 @@ spec:
             - containerPort: 3389
               protocol: TCP
           securityContext:
+            sysctls:
+              - name: net.ipv4.ip_forward
+                value: "1"
             windowsOptions:
               hostProcess: false
               runAsUserName: "ContainerAdministrator"
