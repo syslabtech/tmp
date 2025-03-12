@@ -20,9 +20,9 @@ spec:
           - name: VERSION
             value: "win10"
           - name: RAM_SIZE
-            value: "2G"
+            value: "4G"
           - name: CPU_CORES
-            value: "1"          
+            value: "2"          
           - name: KVM
             value: "N"
 
@@ -39,8 +39,8 @@ spec:
               runAsUserName: "ContainerAdministrator"
           resources:
             limits:
-              cpu: "1500m"
-              memory: "2Gi"
+              cpu: "4500m"
+              memory: "4Gi"
             requests:
               cpu: "10m"
               memory: "2Mi"
